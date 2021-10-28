@@ -1,6 +1,7 @@
 package main
 
 import (
+	"WebServer/model"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -11,22 +12,24 @@ func main() {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 
-	e.GET("/users/:id", getUser)
-	e.GET("/show", show)
+	account := e.Group("/user")
+	account.POST("/login", Login)
+	account.POST("/new", New)
 
-	e.Logger.Fatal(e.Start(":8888"))
+	e.Logger.Fatal(e.Start(":2222"))
 }
 
-func show(c echo.Context) error {
-	// Get team and member from the query string
-	team := c.QueryParam("team")
-	member := c.QueryParam("member")
-	return c.String(http.StatusOK, "team:" + team + ", member:" + member)
+func Login(c echo.Context) error {
+	username := c.FormValue("username")
+	password := c.FormValue("password")
+	_, result := model.CheckUser (username, password)
+	return c.JSON(http.StatusOK, result)
 }
 
-func getUser(c echo.Context) error {
+func New(c echo.Context) error {
 	// User ID from path `users/:id`
-	id := c.Param("id")
-	return c.String(http.StatusOK, id)
+	username := c.FormValue("username")
+	password := c.FormValue("password")
+	_, result := model.AddUser(username, password)
+	return c.String(http.StatusOK, result)
 }
-
