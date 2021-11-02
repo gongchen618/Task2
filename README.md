@@ -1,15 +1,15 @@
 #### github 的登录过程分析 
 
-初始在 github.com/login `Code:200`
+初始在 /login `Code:200`
 
-POST github.com/session `Code:302`
+POST /session `Code:302`
 > 这是提交用户名和密码\
 > 1, 新 set 了很多 cookie，比如
 > user_session=blabla, logged_in=yes,
 > dotcom_user=username\
 > 2, 验证通过回复 location: github.com/login
 
-GET github.com/login `Code:302`
+GET /login `Code:302`
 > 和初始的地址是一样的，区别在于 \
 > 1, 有 location，故会立即跳转，状态码也不同 \
 > 2, cookie 中 logged_in 的字段从 no 换成 yes\
@@ -17,9 +17,9 @@ GET github.com/login `Code:302`
 >               dotcom_user=username;\
 > 3, location: github.com
 
-GET github.com `Code:200`
+GET / `Code:200`
 
-POST github.com/logout
+POST /logout
 > 退出登录时重新 set 了很多 cookie
 
 其他：

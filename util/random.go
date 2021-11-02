@@ -1,14 +1,9 @@
 package util
 
 import (
-	"math/rand"
-	"time"
+	"github.com/google/uuid"
 )
 
-func init () {
-	rand.Seed(time.Now().Unix())
-}
-
-func GetRandom() (int) {
-	return rand.Intn(100)
+func GetRandom() (string) {
+	return uuid.New().String()
 }

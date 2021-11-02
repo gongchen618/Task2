@@ -2,54 +2,61 @@ package model
 
 import (
 	"WebServer/util"
-	"strconv"
+	"errors"
 )
 
-var passwordMap map[string]string
-var sessionMap map[string]string
-//var loggedInMap map[string]string
+var (
+	ErrorUsed = errors.New("Username has already being used")
+	ErrorNotExist = errors.New("User don't exists")
+	ErrorWrongPwd = errors.New("Password isn't correct")
+	ErrorNotLogin = errors.New("User hasn't login in")
+)
+
+type userInfo struct {
+	pwdEncode string
+}
+var userMap map[string]userInfo //username -> userinfo
+var sessionIdMap map[string]string //sessionId -> username
 
 func init () {
-	passwordMap = make(map[string]string)
-	sessionMap = make(map[string]string)
-	//loggedInMap = make(map[string]string)
+	userMap = make(map[string]userInfo)
+	sessionIdMap = make(map[string]string)
 }
 
-func AddUser(username string, password string) (bool, string) {
-	_, ok := passwordMap[username]
+//AddUser add a new user into userinfo
+func AddUser(username string, password string) (error) {
+	_, ok := userMap[username]
 	if ok {
-		return false, "Already exists."
+		return ErrorUsed
 	}
-	passwordMap[username] = password
-	sessionMap[username] = ""
-	//loggedInMap[username] = "no"
-	return true, "Successful build."
+
+	userMap[username] = userInfo{
+		util.Encode(password),
+	}
+	return nil
 }
 
-func LoginUser(username string, password string) (bool, string) {
-	passwordTrue, ok := passwordMap[username]
+//LoginUser deal with a request for user login, and return sessionId if success
+func LoginUser(username string, password string) (string, error) {
+	user, ok := userMap[username]
 	if ok == false {
-		return false, "User not exists."
+		return "", ErrorNotExist
 	}
-	if passwordTrue != password {
-		return false, "Wrong password."
+	if user.pwdEncode != util.Encode(password) {
+		return "", ErrorWrongPwd
 	}
-	sessionMap[username] = strconv.Itoa(util.GetRandom())
-	//loggedInMap[username] = "yes"
-	return true, "Successfully login."
+
+	sid := util.GetRandom()
+	sessionIdMap[sid] = username
+	return sid, nil
 }
 
-func CheckUser (username string, session string) (bool, string) {
-	sessionTrue, ok := sessionMap[username]
-	if ok == false {
-		return false, "User not exists."
+//CheckUser check if a sessionId exist and login in
+func CheckUser (username string, sid string) (error) {
+	name, ok := sessionIdMap[sid]
+	if ok == false || name != username {
+		return ErrorNotLogin
 	}
-	if sessionTrue != session {
-		return false, "Haven't login in."
-	}
-	return true, "Good user."
-}
 
-func GetSessionId (username string) string {
-	return sessionMap[username]
+	return nil
 }
